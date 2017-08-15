@@ -42,15 +42,16 @@ public class HangManHttpClient {
     private static final String CHAR_SET = "UTF-8";
     private static final int SOCKET_TIME_OUT = 1000;
     private static final int CONNECTION_TIME_OUT = 1000;
-    private static final int CONNECTION_REQUEST_TIME_OUT = 500;
+    private static final int CONNECTION_REQUEST_TIME_OUT = 1000;
     private static final int HTTP_MAX_TOTAL_CONECTION = 200;
     private static final int DEFAULT_MAX_PER_ROUTE = 200;
-    private static RequestConfig requestConfig;
-    private static CloseableHttpClient httpCloseableClient;
+    private  RequestConfig requestConfig;
+    private  CloseableHttpClient httpCloseableClient;
 
     private static Logger logger = LoggerFactory.getLogger(HangManHttpClient.class);
 
     HangManHttpClient() {
+
         if (requestConfig == null) {
             requestConfig = getRequestConfig();
         }
@@ -96,7 +97,7 @@ public class HangManHttpClient {
         HttpResponse getResponse = httpCloseableClient.execute(hangmanHttpGet);
         int responseCode = getResponse.getStatusLine().getStatusCode();
         if (responseCode != 200) {
-            throw new RuntimeException("Failed with HTTP error code : " + responseCode);
+            throw new RuntimeException("Http server is not respondng error code : " + responseCode);
         }
         HttpEntity getEntity = getResponse.getEntity();
         return EntityUtils.toString(getEntity);
@@ -157,7 +158,7 @@ public class HangManHttpClient {
         int statusCode = response.getStatusLine().getStatusCode();
 
         if (statusCode != 200 && statusCode != 201) {
-            throw new RuntimeException("Failed with HTTP error code : " + statusCode);
+            throw new RuntimeException("Http server is not respondng error code : " + statusCode);
         }
 
         try {
@@ -190,7 +191,6 @@ public class HangManHttpClient {
         PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager();
         connManager.setMaxTotal(HTTP_MAX_TOTAL_CONECTION);
         connManager.setDefaultMaxPerRoute(DEFAULT_MAX_PER_ROUTE);
-
         // Build the client.
         HttpClientBuilder builder = HttpClientBuilder.create();
         builder.setDefaultRequestConfig(requestConfig);

@@ -1,15 +1,20 @@
 package com.service.impl;
 
 import com.common.util.HangmanUtility;
+import com.constants.HangManConstants;
 import com.http.client.HangManHttpClient;
 import com.json.conversion.JsonConverter;
-import com.resources.HangManConstants;
 import com.service.HangManService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -23,22 +28,19 @@ import java.util.Scanner;
  * 1. Send HTTPPOST request to the HangMan server to start the game.
  * 2. Check Game status it checks number of guesses left, Is game is active, Is user able to guess the the right word
  * 3. It has method which will take a user input character and send as HTTPPOST request as input to check if his guess
- *    is right or not.
+ * is right or not.
  * 4. It has a JSON conversion which converts JSON input String to Map of key and values.
- *
  */
 @Service
 @ComponentScan({"com.http.client", "com.common.util"})
 public class HangmanServiceImpl implements HangManService {
 
     @Autowired
+    HangManHttpClient hangManHttpClient;
+    @Autowired
     private HangmanUtility hangmanUtility;
-
     @Autowired
     private JsonConverter jsonConverter;
-
-    @Autowired
-    HangManHttpClient hangManHttpClient;
 
     /**
      * Takes user input guess as a String object.
@@ -119,33 +121,24 @@ public class HangmanServiceImpl implements HangManService {
      *                                    from the old guesses.
      * @return The user input guess as a character.
      */
-    public char playHangManGame(List<Character> previousInputCharactersList) {
-        Character userInputCharacter;
-        while (true) {
-            System.out.println("Please enter only alphabetical letters");
-
-            if (previousInputCharactersList.size() > 0) {
-                String userPreviousInput = printUserInputChar(previousInputCharactersList);
-                System.out.println("Please enter the new character which is not part of the previous guesses " +
-                        "of list :" + userPreviousInput);
-            }
-
-            Scanner scanner = new Scanner(System.in);
-            String inputUserGuess = scanner.nextLine();
-            if (inputUserGuess != null && !inputUserGuess.isEmpty()) {
-                userInputCharacter = inputUserGuess.charAt(0);
-                if (Character.isLetter(userInputCharacter) &&
-                        !previousInputCharactersList.contains(userInputCharacter)) {
-                    previousInputCharactersList.add(userInputCharacter);
-                    break;
-                }
-            }
+    public char playHangManGame(List<Character> previousInputCharactersList, Map<Character, Integer> charHighFrequancy) {
+        Character systemInputChar;
+        if (charHighFrequancy.containsKey(previousInputCharactersList.get(0))) {
+            charHighFrequancy.keySet().removeAll(previousInputCharactersList);
         }
-        return userInputCharacter;
+
+        Map.Entry<Character, Integer> entry = charHighFrequancy.entrySet().iterator().next();
+        systemInputChar = entry.getKey();
+        System.out.println("System enter alphabetical letter: " + systemInputChar);
+
+        previousInputCharactersList.add(systemInputChar);
+        charHighFrequancy.remove(systemInputChar);
+
+        return systemInputChar;
+
     }
 
     /**
-     *
      * @param userInputChar
      * @param gameId
      * @return
@@ -163,7 +156,6 @@ public class HangmanServiceImpl implements HangManService {
      *
      * @param inputCharacter type List of characters.
      * @return as a StringBuffer which contains user input character as guesses.
-     *
      */
     public String printUserInputChar(List<Character> inputCharacter) {
         StringBuffer strBuff = new StringBuffer();
@@ -182,7 +174,6 @@ public class HangmanServiceImpl implements HangManService {
      * @param gameStatusJsonResponse type as String object. Takes input of HTTPGET request.
      *                               Example for active: {"gameId":"1668a3d841dc","word":"e_i_h_lline","guessesLeft":1,
      *                               "status":"active"}
-     *
      * @return true if game is active and to be continue. Otherwise it returns false if game is inactive.
      */
     public boolean getGameStatus(String gameStatusJsonResponse) {
@@ -199,5 +190,10 @@ public class HangmanServiceImpl implements HangManService {
             return false;
         }
         return true;
+    }
+
+    public List<String> readDictionary(URI uri) throws IOException {
+        Path nioPath = Paths.get(uri);
+        return Files.readAllLines(nioPath, StandardCharsets.UTF_8);
     }
 }
