@@ -20,7 +20,7 @@ public class HangManHttpClientTest extends TestCase {
         String getURL = "http://testhangman.com";
         HangManHttpClient hangManHttpClient = new HangManHttpClient();
         RequestConfig config = hangManHttpClient.getRequestConfig();
-        assertEquals(config.getConnectionRequestTimeout(), 500);
+        assertEquals(config.getConnectionRequestTimeout(), 1000);
         assertEquals(config.getConnectTimeout(), 1000);
         assertEquals(config.getSocketTimeout(), 1000);
     }

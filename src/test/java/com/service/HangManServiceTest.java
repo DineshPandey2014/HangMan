@@ -2,7 +2,7 @@ package com.service;
 
 import com.http.client.HangManHttpClient;
 import com.json.conversion.JsonConverter;
-import com.resources.HangManConstants;
+import com.constants.HangManConstants;
 import com.service.impl.HangmanServiceImpl;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.contrib.java.lang.system.TextFromStandardInputStream.emptyStandardInputStream;
 import static org.mockito.Mockito.when;
 
@@ -109,20 +110,21 @@ public class HangManServiceTest {
         assertTrue(hangmanServiceMock.checkGameToBeContinue(gameID));
     }
 
+
     @Test
     public void testPlayHangManGame() {
+        Map<Character, Integer> dictCharacter = new HashMap<>();
+        dictCharacter.put('a', 3);
+        dictCharacter.put('b', 1);
+        dictCharacter.put('g', 2);
+
         HangmanServiceImpl hangmanService = new HangmanServiceImpl();
         List<Character> previousInputCharactersList = new ArrayList<>();
         previousInputCharactersList.add('a');
         previousInputCharactersList.add('e');
         previousInputCharactersList.add('f');
-        try {
-            hangmanService.playHangManGame(previousInputCharactersList);
-            fail("Expected Exception");
-        }
-        catch(NoSuchElementException noSuchElementException) {
-            assertNotNull(noSuchElementException);
-        }
+        hangmanService.playHangManGame(previousInputCharactersList, dictCharacter);
+        assertNotNull(hangmanService);
     }
 
     @Test
@@ -160,5 +162,14 @@ public class HangManServiceTest {
         Map<String, Object> gameStartParameters = new HashMap<String, Object>();
         ObjectMapper mapper = new ObjectMapper();
         return mapper.readValue(jsonResponse, new TypeReference<Map<String, String>>() {});
+    }
+
+    @Test
+    public void readFile() throws IOException {
+        String path = this.getClass().getResource("").getPath();
+        //res.getPath();
+        HangmanServiceImpl hangmanService = new HangmanServiceImpl();
+                                //Users/dpandey/Hangman_Solver/HangMan-master/src/test/java/com/service/HangManServiceTest.java
+
     }
 }
